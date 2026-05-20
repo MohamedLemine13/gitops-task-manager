@@ -10,6 +10,7 @@
           - python3-pip
           - python3-venv
           - git
+          - rsync
         state: present
         update_cache: yes
 
@@ -34,13 +35,10 @@
       become: no
 
     - name: Create virtual environment and install dependencies
-      shell: |
-        cd /opt/gitops-task-manager
-        rm -rf venv
-        python3 -m venv venv
-        . venv/bin/activate
-        pip install --upgrade pip
-        pip install -r requirements.txt
+      pip:
+        requirements: /opt/gitops-task-manager/requirements.txt
+        virtualenv: /opt/gitops-task-manager/venv
+        virtualenv_python: python3
 
     - name: Create .env file
       copy:
