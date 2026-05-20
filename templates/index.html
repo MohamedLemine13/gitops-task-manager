@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="add-task-section">
+    <h2>➕ Nouvelle tâche</h2>
+    <form action="{{ url_for('add_task') }}" method="POST" class="task-form" id="add-task-form">
+        <div class="form-group">
+            <label for="title">Titre <span class="required">*</span></label>
+            <input type="text" id="title" name="title" placeholder="Ex : Configurer le pipeline CI/CD" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" placeholder="Détails optionnels…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submit-task-btn">Ajouter la tâche</button>
+    </form>
+</section>
+
+<section class="tasks-section">
+    <h2>📋 Tâches <span class="task-count">{{ tasks | length }}</span></h2>
+
+    {% if tasks %}
+    <div class="tasks-grid">
+        {% for task in tasks %}
+        <div class="task-card status-{{ task.status | lower }}" id="task-card-{{ task.id }}">
+            <div class="task-header">
+                <span class="status-badge badge-{{ task.status | lower }}">
+                    {% if task.status == 'TODO' %}🔵 À faire
+                    {% elif task.status == 'IN_PROGRESS' %}🟠 En cours
+                    {% else %}🟢 Terminée
+                    {% endif %}
+                </span>
+                <span class="task-date">{{ task.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+
+            <h3 class="task-title">{{ task.title }}</h3>
+
+            {% if task.description %}
+            <p class="task-description">{{ task.description }}</p>
+            {% endif %}
+
+            <div class="task-actions">
+                <form action="{{ url_for('update_status', task_id=task.id) }}" method="POST" class="inline-form">
+                    <button type="submit" class="btn btn-status" id="status-btn-{{ task.id }}" title="Changer le statut">
+                        {% if task.status == 'TODO' %}▶️ Démarrer
+                        {% elif task.status == 'IN_PROGRESS' %}✅ Terminer
+                        {% else %}🔄 Relancer
+                        {% endif %}
+                    </button>
+                </form>
+                <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" class="inline-form">
+                    <button type="submit" class="btn btn-delete" id="delete-btn-{{ task.id }}" title="Supprimer"
+                        onclick="return confirm('Supprimer cette tâche ?')">
+                        🗑️ Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-icon">📭</p>
+        <p>Aucune tâche pour le moment.</p>
+        <p class="empty-hint">Ajoutez votre première tâche ci-dessus !</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
