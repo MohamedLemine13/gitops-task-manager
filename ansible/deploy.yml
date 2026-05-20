@@ -30,6 +30,7 @@
           --exclude=__pycache__ \
           --exclude=.pytest_cache \
           --exclude=.env \
+          --exclude=tasks.db \
           "{{ playbook_dir }}/../" ansible@10.34.12.86:/opt/gitops-task-manager/
       delegate_to: localhost
       become: no
