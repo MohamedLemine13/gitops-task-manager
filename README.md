@@ -16,14 +16,14 @@ Application web de gestion de tâches conçue pour être déployée via une pipe
 
 ### Stack technique
 
-| Composant     | Technologie         |
-|---------------|---------------------|
-| Backend       | Python Flask        |
-| Frontend      | HTML / CSS / Jinja2 |
-| Base de données | PostgreSQL        |
-| ORM           | SQLAlchemy          |
-| Tests         | pytest              |
-| Serveur prod  | Gunicorn            |
+| Composant       | Technologie         |
+|-----------------|---------------------|
+| Backend         | Python Flask        |
+| Frontend        | HTML / CSS / Jinja2 |
+| Base de données | SQLite              |
+| ORM             | SQLAlchemy          |
+| Tests           | pytest              |
+| Serveur prod    | Gunicorn            |
 
 ---
 
@@ -32,41 +32,18 @@ Application web de gestion de tâches conçue pour être déployée via une pipe
 ### 1. Prérequis
 
 - Python 3.10+
-- PostgreSQL 14+
 - pip
 
-### 2. Installer PostgreSQL (Ubuntu/Debian)
+> **Note :** SQLite est intégré à Python – aucune installation de base de données externe n'est nécessaire.
+
+### 2. Cloner le projet
 
 ```bash
-sudo apt update
-sudo apt install -y postgresql postgresql-contrib
+git clone <URL_DU_REPO>
+cd gitops-task-manager
 ```
 
-Vérifier que le service tourne :
-
-```bash
-sudo systemctl status postgresql
-```
-
-### 3. Configurer l'utilisateur PostgreSQL
-
-```bash
-# Définir un mot de passe pour l'utilisateur postgres
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD '00000000';"
-```
-
-### 4. Créer la base de données et la table
-
-```bash
-sudo -u postgres psql -f init.sql
-```
-
-Ce script :
-- crée la base `gitops_tasks` si elle n'existe pas ;
-- crée la table `tasks` ;
-- insère 3 tâches d'exemple.
-
-### 5. Configurer les variables d'environnement
+### 3. Configurer les variables d'environnement
 
 ```bash
 cp .env.example .env
@@ -75,11 +52,11 @@ cp .env.example .env
 Contenu du fichier `.env` :
 
 ```env
-DATABASE_URL=postgresql://postgres:00000000@localhost:5432/gitops_tasks
+DATABASE_URL=sqlite:///tasks.db
 SECRET_KEY=change-me-to-a-random-string
 ```
 
-### 6. Installer les dépendances Python
+### 4. Installer les dépendances Python
 
 ```bash
 python3 -m venv venv
@@ -87,11 +64,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
-
-## 🚀 Lancement
-
-### Mode développement
+### 5. Lancer l'application
 
 ```bash
 source venv/bin/activate
@@ -100,7 +73,11 @@ python app.py
 
 L'application sera accessible sur : **http://localhost:5000**
 
-### Mode production (Gunicorn)
+La base de données `tasks.db` sera **créée automatiquement** au premier lancement.
+
+---
+
+## 🚀 Déploiement production (Gunicorn)
 
 ```bash
 gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()"
@@ -110,7 +87,7 @@ gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()"
 
 ## 🧪 Tests
 
-Les tests utilisent une base **SQLite en mémoire** – aucune connexion PostgreSQL requise.
+Les tests utilisent une base **SQLite en mémoire** – isolés et rapides.
 
 ```bash
 source venv/bin/activate
@@ -141,7 +118,7 @@ gitops-task-manager/
 ├── config.py              # Configuration (base + testing)
 ├── models.py              # Modèle SQLAlchemy Task
 ├── requirements.txt       # Dépendances Python
-├── init.sql               # Script d'initialisation PostgreSQL
+├── pyproject.toml         # Configuration pytest
 ├── .env.example           # Template des variables d'environnement
 ├── README.md              # Ce fichier
 │
@@ -178,10 +155,16 @@ Ce projet est conçu pour s'intégrer dans :
 2. **Jenkins** – Pipeline de déploiement
 3. **Ansible** – Provisioning et déploiement automatique
 
+### Avantages de SQLite pour le CI/CD
+
+- ✅ Aucune installation de base de données requise
+- ✅ Aucun user/password à configurer
+- ✅ Fichier unique `tasks.db` – facile à sauvegarder/restaurer
+- ✅ Déploiement simplifié avec Ansible (pas de service PostgreSQL)
+- ✅ Compatible avec toutes les machines Linux sans dépendance
+
 ---
 
 ## 📜 Licence
 
 Projet académique – IRT43.
-test
-again

@@ -1,0 +1,63 @@
+- name: Deploy GitOps Task Manager
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+          - git
+        state: present
+        update_cache: yes
+
+    - name: Create application directory
+      file:
+        path: /opt/gitops-task-manager
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Copy project files with rsync
+      shell: |
+        rsync -avz --delete \
+          --exclude=venv \
+          --exclude=.git \
+          --exclude=__pycache__ \
+          --exclude=.pytest_cache \
+          --exclude=.env \
+          "{{ playbook_dir }}/../" ansible@10.34.12.86:/opt/gitops-task-manager/
+      delegate_to: localhost
+      become: no
+
+    - name: Create virtual environment and install dependencies
+      shell: |
+        cd /opt/gitops-task-manager
+        rm -rf venv
+        python3 -m venv venv
+        . venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create .env file
+      copy:
+        dest: /opt/gitops-task-manager/.env
+        content: |
+          DATABASE_URL=sqlite:////opt/gitops-task-manager/tasks.db
+          FLASK_ENV=production
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Stop old Flask app
+      shell: pgrep -f "python.*app.py" && pkill -f "python.*app.py" || true
+      failed_when: false
+      changed_when: false
+
+    - name: Start Flask app
+      shell: |
+        cd /opt/gitops-task-manager
+        nohup venv/bin/python app.py > app.log 2>&1 &
+      become: no
