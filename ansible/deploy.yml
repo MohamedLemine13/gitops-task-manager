@@ -55,6 +55,13 @@
       failed_when: false
       changed_when: false
 
+    - name: Fix app directory ownership
+      file:
+        path: /opt/gitops-task-manager
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        recurse: yes
+        
     - name: Start Flask app
       shell: |
         cd /opt/gitops-task-manager
