@@ -57,7 +57,6 @@ class TestIndexPage:
         response = client.get("/")
         assert b"GitOps Task Manager" in response.data
 
-
 class TestTaskCRUD:
     """Task creation, status update and deletion."""
 
